@@ -1,22 +1,3 @@
-a=10
-
-if a % 2 == 0:
-     print(f"{a} is Even")
-else:
-     print(f"{a} is Odd")
-
-print("Program Finished...\n\n")
-
-# End of the program
-
-b=20 
-if a<b:
-    print(f"{a} is less than {b}")
-else:
-    print(f"{a} is greater than {b}")
-print("Program Finished...\n\n")
-
-# End of the program
 
 """ 
 Ucgen bulma Uygulaması
