@@ -1,0 +1,1 @@
+# Görsel Programlama(Python) Notları 
