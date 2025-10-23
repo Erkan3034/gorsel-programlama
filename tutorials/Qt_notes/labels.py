@@ -34,7 +34,7 @@ class LabelDemo(QWidget):
         
         # Resim göstermek için QLabel kullanılabilir
         # label4 = QLabel()
-        # label4.setPixmap(QPixmap("birresim.png"))
+        # label4.setPixmap(QPixmap("resources/resim.png"))
         
         # LABEL'i DISABLE ETMEK (kullanıcı etkileşimi olmasın)
         label2.setDisabled(True)
