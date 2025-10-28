@@ -5,8 +5,8 @@ def creation_and_basic():
     c = ["a", 1, True]          # farklı türler bir arada olabilir
     d = list(range(5))          # [0,1,2,3,4]
     e = [0] * 3                 # [0,0,0]
-    print("a:", a)
-    print("b:", b)
+    print("a: ([])", a)
+    print("b: ([1,2,3])", b)
     print("c:", c)
     print("d:", d)
     print("e:", e)
