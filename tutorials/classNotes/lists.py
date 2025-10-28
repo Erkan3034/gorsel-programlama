@@ -7,9 +7,9 @@ def creation_and_basic():
     e = [0] * 3                 # [0,0,0]
     print("a: ([])", a)
     print("b: ([1,2,3])", b)
-    print("c:", c)
-    print("d:", d)
-    print("e:", e)
+    print("c: ([a,1,True])", c)
+    print("d: (list(range(5)))", d)
+    print("e: ([0] * 3)", e)
     print()
 
 def indexing_and_slicing():
