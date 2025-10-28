@@ -1,10 +1,3 @@
-"""
-Temel Seviye: Python Listeler (Beginner)
-
-Bu dosya, listelerle ilgili en temel ve en çok kullanılan
-konuları kısa örneklerle gösterir.
-"""
-
 def creation_and_basic():
     print("== Oluşturma ve Temel İşlemler ==")
     a = []                      # boş liste
