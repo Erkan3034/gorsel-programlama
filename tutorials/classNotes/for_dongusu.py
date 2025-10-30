@@ -1,3 +1,5 @@
+"""
+
 isim = "Erkan"
 
 for harf in isim:
@@ -66,3 +68,19 @@ for i in range(1, 10):
         break
     print(i, end=" ")
 print("\nContinue and break statements Program Finished...\n\n")
+
+"""
+#nested loops
+for i in range(1, 10):
+    for j in range(1, 10):
+        print(i * j, end=" ")
+    print()
+print("\nNested loops Program Finished...\n\n")
+
+#============
+
+dersler = ["Matematik", "Fizik", "Kimya", "Biyoloji", "Türkçe", "İngilizce"]
+konular =["Sayılar", "Geometri", "Fonksiyonlar", "Kimyasal Reaksiyonlar", "Türkçe Grammar", "English Grammar"]
+
+for i in range(len(dersler)):
+    print(f"{dersler[i]} dersi {konular[i]} konusu")
