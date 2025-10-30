@@ -58,3 +58,22 @@ while True:
 
 print("Oyun bitti. Tekrar oynayabilirsiniz!\n")
 
+#=============================
+# Bir sayının faktöriyelini while döngüsü ile hesaplayan kod
+
+sayi = int(input("Faktöriyelini almak istediğiniz sayıyı girin: "))
+faktoriyel = 1
+i = 1
+
+while i <= sayi:
+    faktoriyel *= i
+    i += 1
+
+print(f"{sayi}! = {faktoriyel}\n")
+
+
+
+
+
+
+
