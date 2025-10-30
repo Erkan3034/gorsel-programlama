@@ -1,5 +1,4 @@
 # DECORATORS (Süsleyiciler)
-
 """
 Decorator'lar fonksiyonları veya sınıfları değiştiren/kapsayan fonksiyonlardır.
 Mevcut bir fonksiyona özellik eklemek istediğimizde kullanışlıdır.
