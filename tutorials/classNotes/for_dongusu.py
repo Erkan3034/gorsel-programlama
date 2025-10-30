@@ -41,3 +41,28 @@ for i in numbers:
     squares.append(i*i)
 print(squares)
 print("\nSquares of the numbers in the list Program Finished...\n\n")
+
+#=========== 20den geriye doğru sayı yaazn program(range ile)
+for i in range(20, 0, -1):
+    print(i, end="-")
+print("\nNumbers from 20 to 1 Program Finished...\n\n")
+
+#=========== satır sütun yazdırma programı
+
+a= int(input("Enter a column number : "))
+b = int(input("Enter a row number : "))
+
+for i in range (1,a+1):
+    for j in range (1,b+1):
+        print(j, end=" ")
+    print()
+print("\nRow and column print program Finished...\n\n")
+
+#continue and break statements
+for i in range(1, 10):
+    if i == 5 or i == 6:
+        continue
+    if i == 8:
+        break
+    print(i, end=" ")
+print("\nContinue and break statements Program Finished...\n\n")
