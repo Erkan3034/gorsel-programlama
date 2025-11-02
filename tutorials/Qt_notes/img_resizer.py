@@ -33,12 +33,21 @@ class ImageWidget(QLabel):
         self.dragging = False
         self.drag_handle = None  # 'nw', 'ne', 'sw', 'se', 'n', 's', 'e', 'w' veya None
         
+        # Şekil çizme modu
+        self.draw_mode = None  # None, 'rectangle', 'circle', 'line', 'free'
+        self.shapes = []  # Çizilen şekiller
+        self.draw_start = QPoint()
+        self.draw_current = QPoint()
+        self.draw_pen = QPen(QColor(255, 0, 0), 3)  # Kırmızı, kalınlık 3
+        self.is_drawing = False
+        
         # Dinamik boyut gösterimi
         self.show_dimensions = True
         
         self.setMinimumSize(600, 400)
         self.setAlignment(Qt.AlignCenter)
         self.setStyleSheet("background-color: #2b2b2b; border: 2px solid #404040;")
+        self.setMouseTracking(True)
     
     def set_image(self, pil_image):
         """PIL Image'ı ayarla ve göster"""
@@ -131,6 +140,35 @@ class ImageWidget(QLabel):
                                QColor(0, 0, 0, 150))
                 painter.drawText(text_x, text_y, info_text)
             
+            # Şekilleri çiz
+            for shape in self.shapes:
+                shape_type, points, pen = shape
+                painter.setPen(pen)
+                
+                if shape_type == 'rectangle' and len(points) == 2:
+                    rect = QRect(points[0], points[1]).normalized()
+                    painter.drawRect(rect)
+                elif shape_type == 'circle' and len(points) == 2:
+                    rect = QRect(points[0], points[1]).normalized()
+                    painter.drawEllipse(rect)
+                elif shape_type == 'line' and len(points) == 2:
+                    painter.drawLine(points[0], points[1])
+                elif shape_type == 'free' and len(points) > 1:
+                    for i in range(len(points) - 1):
+                        painter.drawLine(points[i], points[i + 1])
+            
+            # Şu an çizilen şekli göster
+            if self.is_drawing and self.draw_mode:
+                painter.setPen(self.draw_pen)
+                if self.draw_mode == 'rectangle':
+                    rect = QRect(self.draw_start, self.draw_current).normalized()
+                    painter.drawRect(rect)
+                elif self.draw_mode == 'circle':
+                    rect = QRect(self.draw_start, self.draw_current).normalized()
+                    painter.drawEllipse(rect)
+                elif self.draw_mode == 'line':
+                    painter.drawLine(self.draw_start, self.draw_current)
+            
             # Kırpma dikdörtgenini çiz
             if self.crop_mode and self.crop_rect.isValid():
                 # Karanlık overlay
@@ -161,10 +199,24 @@ class ImageWidget(QLabel):
     
     def mousePressEvent(self, event):
         """Fare basıldığında"""
-        if not self.crop_mode or not self.pil_image:
+        if not self.pil_image:
             return
         
         pos = event.pos()
+        
+        # Şekil çizme modu
+        if self.draw_mode and self.image_rect.contains(pos):
+            self.draw_start = pos
+            self.draw_current = pos
+            self.is_drawing = True
+            if self.draw_mode == 'free':
+                self.shapes.append(('free', [pos], QPen(self.draw_pen.color(), self.draw_pen.width())))
+            self.update()
+            return
+        
+        # Kırpma modu
+        if not self.crop_mode:
+            return
         
         # Tutamaç kontrolü
         if self.crop_rect.isValid():
@@ -202,10 +254,20 @@ class ImageWidget(QLabel):
     
     def mouseMoveEvent(self, event):
         """Fare hareket ettiğinde"""
-        if not self.crop_mode or not self.dragging:
+        pos = event.pos()
+        
+        # Şekil çizme modu
+        if self.is_drawing and self.draw_mode:
+            self.draw_current = pos
+            if self.draw_mode == 'free' and self.shapes:
+                # Serbest çizime nokta ekle
+                self.shapes[-1][1].append(pos)
+            self.update()
             return
         
-        pos = event.pos()
+        # Kırpma modu
+        if not self.crop_mode or not self.dragging:
+            return
         
         if self.drag_handle:
             # Tutamaçtan sürükle
@@ -234,8 +296,79 @@ class ImageWidget(QLabel):
     
     def mouseReleaseEvent(self, event):
         """Fare bırakıldığında"""
+        # Şekil çizme modu
+        if self.is_drawing and self.draw_mode:
+            if self.draw_mode in ['rectangle', 'circle', 'line']:
+                # Şekli kaydet
+                if self.image_rect.contains(self.draw_start) and self.image_rect.contains(self.draw_current):
+                    self.shapes.append((self.draw_mode, [self.draw_start, self.draw_current], 
+                                      QPen(self.draw_pen.color(), self.draw_pen.width())))
+                    # Görüntüyü güncelle
+                    self.update_image_with_shapes()
+            self.is_drawing = False
+            self.update()
+            return
+        
         self.dragging = False
         self.drag_handle = None
+    
+    def update_image_with_shapes(self):
+        """Şekilleri görüntüye çiz"""
+        if not self.pil_image or not self.shapes:
+            return
+        
+        # PIL Image'ı QImage'a dönüştür
+        from PyQt5.QtGui import QImage
+        q_image = self.pil_to_qimage(self.pil_image)
+        painter = QPainter(q_image)
+        
+        # Şekilleri çiz
+        for shape in self.shapes:
+            shape_type, points, pen = shape
+            painter.setPen(pen)
+            
+            if shape_type == 'rectangle' and len(points) == 2:
+                rect = QRect(points[0], points[1]).normalized()
+                # Widget koordinatlarını görüntü koordinatlarına dönüştür
+                x1 = int((rect.left() - self.image_rect.left()) / self.scale_factor)
+                y1 = int((rect.top() - self.image_rect.top()) / self.scale_factor)
+                x2 = int((rect.right() - self.image_rect.left()) / self.scale_factor)
+                y2 = int((rect.bottom() - self.image_rect.top()) / self.scale_factor)
+                painter.drawRect(QRect(x1, y1, x2 - x1, y2 - y1))
+            elif shape_type == 'circle' and len(points) == 2:
+                rect = QRect(points[0], points[1]).normalized()
+                x1 = int((rect.left() - self.image_rect.left()) / self.scale_factor)
+                y1 = int((rect.top() - self.image_rect.top()) / self.scale_factor)
+                x2 = int((rect.right() - self.image_rect.left()) / self.scale_factor)
+                y2 = int((rect.bottom() - self.image_rect.top()) / self.scale_factor)
+                painter.drawEllipse(QRect(x1, y1, x2 - x1, y2 - y1))
+            elif shape_type == 'line' and len(points) == 2:
+                x1 = int((points[0].x() - self.image_rect.left()) / self.scale_factor)
+                y1 = int((points[0].y() - self.image_rect.top()) / self.scale_factor)
+                x2 = int((points[1].x() - self.image_rect.left()) / self.scale_factor)
+                y2 = int((points[1].y() - self.image_rect.top()) / self.scale_factor)
+                painter.drawLine(x1, y1, x2, y2)
+            elif shape_type == 'free' and len(points) > 1:
+                for i in range(len(points) - 1):
+                    x1 = int((points[i].x() - self.image_rect.left()) / self.scale_factor)
+                    y1 = int((points[i].y() - self.image_rect.top()) / self.scale_factor)
+                    x2 = int((points[i + 1].x() - self.image_rect.left()) / self.scale_factor)
+                    y2 = int((points[i + 1].y() - self.image_rect.top()) / self.scale_factor)
+                    painter.drawLine(x1, y1, x2, y2)
+        
+        painter.end()
+        
+        # QImage'ı PIL Image'a dönüştür
+        buffer = q_image.bits().asstring(q_image.byteCount())
+        self.pil_image = Image.frombytes("RGB", (q_image.width(), q_image.height()), buffer)
+        self.update_display()
+        
+        # Parent'a şekil eklendiğini bildir
+        parent = self.parent()
+        while parent and not hasattr(parent, 'on_shape_added'):
+            parent = parent.parent()
+        if parent:
+            parent.on_shape_added(self.pil_image)
     
     def resizeEvent(self, event):
         """Widget boyutu değiştiğinde"""
@@ -248,6 +381,11 @@ class ImageResizer(QMainWindow):
         super().__init__()
         self.original_image = None
         self.current_image = None
+        
+        # Undo/Redo için geçmiş
+        self.history = []  # Geçmiş görüntüler
+        self.history_index = -1  # Mevcut pozisyon
+        self.max_history = 20  # Maksimum geçmiş sayısı
         
         self.init_ui()
     
@@ -358,6 +496,22 @@ class ImageResizer(QMainWindow):
         
         file_menu.addSeparator()
         
+        undo_action = QAction("Geri Al", self)
+        undo_action.setShortcut("Ctrl+Z")
+        undo_action.triggered.connect(self.undo)
+        undo_action.setEnabled(False)
+        self.undo_action = undo_action
+        file_menu.addAction(undo_action)
+        
+        redo_action = QAction("İleri Al", self)
+        redo_action.setShortcut("Ctrl+Y")
+        redo_action.triggered.connect(self.redo)
+        redo_action.setEnabled(False)
+        self.redo_action = redo_action
+        file_menu.addAction(redo_action)
+        
+        file_menu.addSeparator()
+        
         reset_action = QAction("Orijinal Haline Döndür", self)
         reset_action.triggered.connect(self.reset_image)
         reset_action.setEnabled(False)
@@ -442,6 +596,47 @@ class ImageResizer(QMainWindow):
         crop_cancel_action.setEnabled(False)
         self.crop_cancel_action = crop_cancel_action
         crop_menu.addAction(crop_cancel_action)
+        
+        # Şekil Çizme menüsü
+        draw_menu = menubar.addMenu("Şekil Çizme")
+        
+        rect_action = QAction("Dikdörtgen", self)
+        rect_action.triggered.connect(lambda: self.set_draw_mode('rectangle'))
+        rect_action.setEnabled(False)
+        self.rect_menu_action = rect_action
+        draw_menu.addAction(rect_action)
+        
+        circle_action = QAction("Daire", self)
+        circle_action.triggered.connect(lambda: self.set_draw_mode('circle'))
+        circle_action.setEnabled(False)
+        self.circle_menu_action = circle_action
+        draw_menu.addAction(circle_action)
+        
+        line_action = QAction("Çizgi", self)
+        line_action.triggered.connect(lambda: self.set_draw_mode('line'))
+        line_action.setEnabled(False)
+        self.line_menu_action = line_action
+        draw_menu.addAction(line_action)
+        
+        free_action = QAction("Serbest Çizim", self)
+        free_action.triggered.connect(lambda: self.set_draw_mode('free'))
+        free_action.setEnabled(False)
+        self.free_menu_action = free_action
+        draw_menu.addAction(free_action)
+        
+        draw_menu.addSeparator()
+        
+        clear_shapes_action = QAction("Tüm Şekilleri Sil", self)
+        clear_shapes_action.triggered.connect(self.clear_shapes)
+        clear_shapes_action.setEnabled(False)
+        self.clear_shapes_action = clear_shapes_action
+        draw_menu.addAction(clear_shapes_action)
+        
+        draw_off_action = QAction("Çizimi Kapat", self)
+        draw_off_action.triggered.connect(lambda: self.set_draw_mode(None))
+        draw_off_action.setEnabled(False)
+        self.draw_off_action = draw_off_action
+        draw_menu.addAction(draw_off_action)
     
     def create_toolbar(self):
         """Toolbar oluştur"""
@@ -460,11 +655,139 @@ class ImageResizer(QMainWindow):
         
         toolbar.addSeparator()
         
+        # Geri alma / İleri alma butonları (küçük)
+        self.btn_undo = QPushButton("◀")
+        self.btn_undo.setMaximumWidth(30)
+        self.btn_undo.setToolTip("Geri Al (Ctrl+Z)")
+        self.btn_undo.clicked.connect(self.undo)
+        self.btn_undo.setEnabled(False)
+        toolbar.addWidget(self.btn_undo)
+        
+        self.btn_redo = QPushButton("▶")
+        self.btn_redo.setMaximumWidth(30)
+        self.btn_redo.setToolTip("İleri Al (Ctrl+Y)")
+        self.btn_redo.clicked.connect(self.redo)
+        self.btn_redo.setEnabled(False)
+        toolbar.addWidget(self.btn_redo)
+        
+        toolbar.addSeparator()
+        
         btn_crop = QPushButton("✂️ Kırp")
         btn_crop.clicked.connect(self.start_crop)
         btn_crop.setEnabled(False)
         self.btn_crop = btn_crop
         toolbar.addWidget(btn_crop)
+        
+        # Şekil çizme butonları
+        toolbar.addSeparator()
+        toolbar.addWidget(QLabel("Şekil:"))
+        
+        btn_rect = QPushButton("▭")
+        btn_rect.setMaximumWidth(30)
+        btn_rect.setToolTip("Dikdörtgen")
+        btn_rect.clicked.connect(lambda: self.set_draw_mode('rectangle'))
+        btn_rect.setEnabled(False)
+        self.btn_rect = btn_rect
+        toolbar.addWidget(btn_rect)
+        
+        btn_circle = QPushButton("○")
+        btn_circle.setMaximumWidth(30)
+        btn_circle.setToolTip("Daire")
+        btn_circle.clicked.connect(lambda: self.set_draw_mode('circle'))
+        btn_circle.setEnabled(False)
+        self.btn_circle = btn_circle
+        toolbar.addWidget(btn_circle)
+        
+        btn_line = QPushButton("╱")
+        btn_line.setMaximumWidth(30)
+        btn_line.setToolTip("Çizgi")
+        btn_line.clicked.connect(lambda: self.set_draw_mode('line'))
+        btn_line.setEnabled(False)
+        self.btn_line = btn_line
+        toolbar.addWidget(btn_line)
+        
+        btn_free = QPushButton("✎")
+        btn_free.setMaximumWidth(30)
+        btn_free.setToolTip("Serbest Çizim")
+        btn_free.clicked.connect(lambda: self.set_draw_mode('free'))
+        btn_free.setEnabled(False)
+        self.btn_free = btn_free
+        toolbar.addWidget(btn_free)
+        
+        btn_clear_shapes = QPushButton("🗑 Şekilleri Sil")
+        btn_clear_shapes.clicked.connect(self.clear_shapes)
+        btn_clear_shapes.setEnabled(False)
+        self.btn_clear_shapes = btn_clear_shapes
+        toolbar.addWidget(btn_clear_shapes)
+        
+        btn_draw_off = QPushButton("✖ Çizimi Kapat")
+        btn_draw_off.clicked.connect(lambda: self.set_draw_mode(None))
+        btn_draw_off.setEnabled(False)
+        self.btn_draw_off = btn_draw_off
+        toolbar.addWidget(btn_draw_off)
+    
+    def add_to_history(self, image):
+        """Geçmişe ekle"""
+        # Mevcut pozisyondan sonrasını sil (yeni bir yol açıldığında)
+        if self.history_index < len(self.history) - 1:
+            self.history = self.history[:self.history_index + 1]
+        
+        # Görüntüyü kopyala ve ekle
+        self.history.append(image.copy())
+        self.history_index += 1
+        
+        # Maksimum geçmiş sayısını kontrol et
+        if len(self.history) > self.max_history:
+            self.history.pop(0)
+            self.history_index -= 1
+        
+        # Buton durumlarını güncelle
+        self.btn_undo.setEnabled(self.history_index > 0)
+        self.btn_redo.setEnabled(self.history_index < len(self.history) - 1)
+        self.undo_action.setEnabled(self.history_index > 0)
+        self.redo_action.setEnabled(self.history_index < len(self.history) - 1)
+    
+    def undo(self):
+        """Geri al"""
+        if self.history_index > 0:
+            self.history_index -= 1
+            self.current_image = self.history[self.history_index].copy()
+            self.image_widget.set_image(self.current_image)
+            
+            width, height = self.current_image.size
+            self.width_spin.blockSignals(True)
+            self.height_spin.blockSignals(True)
+            self.width_spin.setValue(width)
+            self.height_spin.setValue(height)
+            self.width_spin.blockSignals(False)
+            self.height_spin.blockSignals(False)
+            
+            self.btn_undo.setEnabled(self.history_index > 0)
+            self.btn_redo.setEnabled(True)
+            self.undo_action.setEnabled(self.history_index > 0)
+            self.redo_action.setEnabled(True)
+            self.statusBar().showMessage("Geri alındı")
+    
+    def redo(self):
+        """İleri al"""
+        if self.history_index < len(self.history) - 1:
+            self.history_index += 1
+            self.current_image = self.history[self.history_index].copy()
+            self.image_widget.set_image(self.current_image)
+            
+            width, height = self.current_image.size
+            self.width_spin.blockSignals(True)
+            self.height_spin.blockSignals(True)
+            self.width_spin.setValue(width)
+            self.height_spin.setValue(height)
+            self.width_spin.blockSignals(False)
+            self.height_spin.blockSignals(False)
+            
+            self.btn_undo.setEnabled(True)
+            self.btn_redo.setEnabled(self.history_index < len(self.history) - 1)
+            self.undo_action.setEnabled(True)
+            self.redo_action.setEnabled(self.history_index < len(self.history) - 1)
+            self.statusBar().showMessage("İleri alındı")
     
     def open_image(self):
         """Görüntü aç"""
@@ -478,6 +801,10 @@ class ImageResizer(QMainWindow):
                 self.original_image = Image.open(file_path)
                 self.current_image = self.original_image.copy()
                 self.image_widget.set_image(self.current_image)
+                
+                # Geçmişi sıfırla
+                self.history = [self.current_image.copy()]
+                self.history_index = 0
                 
                 width, height = self.original_image.size
                 self.width_spin.blockSignals(True)
@@ -501,10 +828,30 @@ class ImageResizer(QMainWindow):
                 self.sharpen_action.setEnabled(True)
                 self.crop_start_action.setEnabled(True)
                 self.btn_crop.setEnabled(True)
+                self.btn_rect.setEnabled(True)
+                self.btn_circle.setEnabled(True)
+                self.btn_line.setEnabled(True)
+                self.btn_free.setEnabled(True)
+                self.btn_clear_shapes.setEnabled(True)
+                self.btn_draw_off.setEnabled(True)
+                self.rect_menu_action.setEnabled(True)
+                self.circle_menu_action.setEnabled(True)
+                self.line_menu_action.setEnabled(True)
+                self.free_menu_action.setEnabled(True)
+                self.clear_shapes_action.setEnabled(True)
+                self.draw_off_action.setEnabled(True)
+                
+                # Şekilleri temizle
+                self.image_widget.shapes = []
                 
                 self.statusBar().showMessage(f"Görüntü açıldı: {width}×{height} px")
             except Exception as e:
                 QMessageBox.critical(self, "Hata", f"Görüntü açılamadı: {str(e)}")
+    
+    def on_shape_added(self, image):
+        """Şekil eklendiğinde çağrılır"""
+        self.current_image = image
+        self.add_to_history(image)
     
     def save_image(self):
         """Görüntü kaydet"""
@@ -561,6 +908,7 @@ class ImageResizer(QMainWindow):
         # Orijinal boyutlardan başlayarak tüm değişiklikleri uygula
         self.current_image = self.original_image.copy()
         self.current_image = self.current_image.resize((width, height), Image.Resampling.LANCZOS)
+        self.add_to_history(self.current_image)
         self.image_widget.set_image(self.current_image)
         self.statusBar().showMessage(f"Boyut: {width}×{height} px")
     
@@ -570,6 +918,7 @@ class ImageResizer(QMainWindow):
             return
         
         self.current_image = self.current_image.rotate(angle, expand=True)
+        self.add_to_history(self.current_image)
         self.image_widget.set_image(self.current_image)
         
         width, height = self.current_image.size
@@ -592,6 +941,7 @@ class ImageResizer(QMainWindow):
         if vertical:
             self.current_image = self.current_image.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
         
+        self.add_to_history(self.current_image)
         self.image_widget.set_image(self.current_image)
         self.statusBar().showMessage("Görüntü çevrildi")
     
@@ -631,6 +981,7 @@ class ImageResizer(QMainWindow):
         if dialog.exec_() == QDialog.Accepted:
             enhancer = ImageEnhance.Brightness(self.current_image)
             self.current_image = enhancer.enhance(slider.value() / 100.0)
+            self.add_to_history(self.current_image)
             self.image_widget.set_image(self.current_image)
             self.statusBar().showMessage("Parlaklık ayarlandı")
         else:
@@ -673,6 +1024,7 @@ class ImageResizer(QMainWindow):
         if dialog.exec_() == QDialog.Accepted:
             enhancer = ImageEnhance.Contrast(self.current_image)
             self.current_image = enhancer.enhance(slider.value() / 100.0)
+            self.add_to_history(self.current_image)
             self.image_widget.set_image(self.current_image)
             self.statusBar().showMessage("Kontrast ayarlandı")
         else:
@@ -684,6 +1036,7 @@ class ImageResizer(QMainWindow):
             return
         
         self.current_image = self.current_image.filter(filter_type)
+        self.add_to_history(self.current_image)
         self.image_widget.set_image(self.current_image)
         self.statusBar().showMessage("Filtre uygulandı")
     
@@ -708,6 +1061,7 @@ class ImageResizer(QMainWindow):
         
         x1, y1, x2, y2 = coords
         self.current_image = self.current_image.crop((x1, y1, x2, y2))
+        self.add_to_history(self.current_image)
         self.image_widget.set_image(self.current_image)
         
         width, height = self.current_image.size
@@ -720,6 +1074,46 @@ class ImageResizer(QMainWindow):
         
         self.cancel_crop()
         self.statusBar().showMessage(f"Kırpıldı: {width}×{height} px")
+    
+    def set_draw_mode(self, mode):
+        """Şekil çizme modunu ayarla"""
+        self.image_widget.draw_mode = mode
+        self.image_widget.crop_mode = False
+        
+        # Buton durumlarını güncelle
+        if mode:
+            self.btn_rect.setStyleSheet("")
+            self.btn_circle.setStyleSheet("")
+            self.btn_line.setStyleSheet("")
+            self.btn_free.setStyleSheet("")
+            if mode == 'rectangle':
+                self.btn_rect.setStyleSheet("background-color: #0078d4;")
+            elif mode == 'circle':
+                self.btn_circle.setStyleSheet("background-color: #0078d4;")
+            elif mode == 'line':
+                self.btn_line.setStyleSheet("background-color: #0078d4;")
+            elif mode == 'free':
+                self.btn_free.setStyleSheet("background-color: #0078d4;")
+            self.statusBar().showMessage(f"Çizim modu: {mode}")
+        else:
+            self.btn_rect.setStyleSheet("")
+            self.btn_circle.setStyleSheet("")
+            self.btn_line.setStyleSheet("")
+            self.btn_free.setStyleSheet("")
+            self.statusBar().showMessage("Çizim modu kapatıldı")
+    
+    def clear_shapes(self):
+        """Tüm şekilleri sil"""
+        if self.image_widget.shapes:
+            reply = QMessageBox.question(
+                self, "Onay",
+                "Tüm şekilleri silmek istediğinize emin misiniz?",
+                QMessageBox.Yes | QMessageBox.No
+            )
+            if reply == QMessageBox.Yes:
+                self.image_widget.shapes = []
+                self.image_widget.update()
+                self.statusBar().showMessage("Şekiller silindi")
     
     def cancel_crop(self):
         """Kırpmayı iptal et"""
