@@ -1,36 +1,18 @@
 import time
-"""
-Yıldız Piramit Uygulaması
-"""
 
-n = int(input("Piramidin maksimum yıldız sayısını giriniz: "))
-miktar = int(input("Piramidin kaç kez tekrarlanacağını giriniz: "))
+def print_star_pattern(n):
+    # Increasing pattern
+    for i in range(1, n + 1):
+        print("* " * i)
+        time.sleep(0.1)
+    
+    # Decreasing pattern
+    for i in range(n - 1, 0, -1):
+        print("* " * i)
+        time.sleep(0.1)
+    
+# Get input from user
+n = int(input("Yıldız satırı uzunluğunu giriniz: "))
 
-# Dış döngü: piramidin kaç kez tekrarlanacağı
-sayac = 1
 while True:
-    # Artan kısım (1'den n'e kadar)
-    i = 1
-    while i <= n:
-        j = 1
-        while j <= i:
-            print("*", end="")
-            j += 1
-        print()  # Satır sonu
-        i += 1
-       
-    # Azalan kısım (n-1'den 1'e kadar)
-    i = n - 1
-    while i >= 1:
-        j = 1
-        while j <= i:
-            print("*", end="")
-            j += 1
-        print()  # Satır sonu
-        i -= 1
-    sayac += 1    
-    #print("Sonraki piramit...\n")
-    time.sleep(2) # 2 saniye bekle
-print("\nINFO: Program Finished...\n\n")
-# End of the program
-
+    print_star_pattern(n)
