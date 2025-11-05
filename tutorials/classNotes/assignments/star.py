@@ -19,7 +19,6 @@ while True:
         print()  # Satır sonu
         i += 1
        
-    
     # Azalan kısım (n-1'den 1'e kadar)
     i = n - 1
     while i >= 1:
@@ -29,8 +28,9 @@ while True:
             j += 1
         print()  # Satır sonu
         i -= 1
-    sayac += 1
-    time.sleep(1)
+    sayac += 1    
+    #print("Sonraki piramit...\n")
+    time.sleep(2) # 2 saniye bekle
 print("\nINFO: Program Finished...\n\n")
 # End of the program
 
