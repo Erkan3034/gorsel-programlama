@@ -58,4 +58,42 @@ def ogrenci_ekle():
         print("\nÖğrenci Eklenemedi, bilgileri kontrol edip tekrar denyin.\n")
 
 def ogrenci_guncelle():
+    tum_ogrencileri_goster()
+
+    aranan_id= int(input("\n Güncellenecek öğrenci ID'si : "))
+
+    for ogr in ogrenciler:
+        if ogr["id"]== aranan_id:
+            print("\n Mevcut Değeri Korumak İçin Boş Bırakabilirsiniz")
+            yeni_ad = input("Ad: ") or ogr["ad"]
+            yeni_soyad = input("Soyad: ") or ogr["soyad"]
+            yeni_numara = input("Numara: ") or ogr["numara"]
+
+            giris_yas = input("Yaş: ")
+            yeni_yas = int(giris_yas) if giris_yas else ogr["yas"]
+
+            yeni_email = input("E-mail: ") or ogr["e-mail"]
+            
+
+            ogr["ad"]:yeni_ad 
+            ogr["soyad"]:yeni_soyad 
+            ogr["numara"]:yeni_numara 
+            ogr["yas"]:yeni_yas 
+            ogr["e-mail"]:yeni_email 
+
+            print("\nÖğrenci güncellendi!\n")
+            return
     
+    print("\nBu ID bulunamadı!\n")
+            
+def ogrenci_sil():
+    tum_ogrencileri_goster()
+
+    silinecek_id = int(input("\n Silmek istediğiniz öğrenci ID: "))
+    
+    try:
+        for i in ogrenciler:
+            if i["id"]: silinecek_id
+            ogrenciler.remove(i)
+    except:
+        print("\n Öğrenci Silinemedi ID kontrol edip tekrar deneyiniz!")
