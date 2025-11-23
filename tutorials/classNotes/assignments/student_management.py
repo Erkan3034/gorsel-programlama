@@ -32,5 +32,30 @@ def tum_ogrencileri_goster():
 
 
 def ogrenci_ekle():
+    global son_id
 
+    print("\n==============Yeni Öğrenci Ekle==============")
+    ad = input("Öğrenci Adı: ")
+    soyad = input("Öğrenci Soyadı: ")
+    numara = input("Öğrenci Numarası(11 Hane): ")
+    yas = int(input("Öğrenci Yaşı: "))
+    e_mail=input("E-mail Adrsi: ")
 
+    yeni_ogrenci={
+        "id":son_id,
+        "ad":ad,
+        "soyad":soyad,
+        "numara":numara,
+        "yas":yas,
+        "e-mail":e_mail
+    }
+
+    try:
+        ogrenciler.append(yeni_ogrenci)
+        son_id+=1
+        print("\nÖğrenci Başarıyla Eklendi!\n")
+    except:
+        print("\nÖğrenci Eklenemedi, bilgileri kontrol edip tekrar denyin.\n")
+
+def ogrenci_guncelle():
+    
