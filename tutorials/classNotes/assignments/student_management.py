@@ -1,6 +1,6 @@
 import time
 
-son_id = 0
+son_id = 3 # id artırımını otomaitk yaptırıyorum, her seferinde input almamak için
 ogrenciler =[
     {
         "id":1, "ad":"Erkan", "soyad":"TURGUT", "yas":22 , "numara":22010708048 , "e-mail":"22010708048@ogrenci.bartin.edu.tr"
@@ -57,6 +57,8 @@ def ogrenci_ekle():
     except:
         print("\nÖğrenci Eklenemedi, bilgileri kontrol edip tekrar denyin.\n")
 
+
+
 def ogrenci_guncelle():
     tum_ogrencileri_goster()
 
@@ -75,17 +77,19 @@ def ogrenci_guncelle():
             yeni_email = input("E-mail: ") or ogr["e-mail"]
             
 
-            ogr["ad"]:yeni_ad 
-            ogr["soyad"]:yeni_soyad 
-            ogr["numara"]:yeni_numara 
-            ogr["yas"]:yeni_yas 
-            ogr["e-mail"]:yeni_email 
+            ogr["ad"]=yeni_ad 
+            ogr["soyad"]=yeni_soyad 
+            ogr["numara"]=yeni_numara 
+            ogr["yas"]=yeni_yas 
+            ogr["e-mail"]=yeni_email 
 
             print("\nÖğrenci güncellendi!\n")
             return
     
     print("\nBu ID bulunamadı!\n")
             
+
+
 def ogrenci_sil():
     tum_ogrencileri_goster()
 
@@ -95,5 +99,35 @@ def ogrenci_sil():
         for i in ogrenciler:
             if i["id"]: silinecek_id
             ogrenciler.remove(i)
+            print("\n Öğrenci Başarıyla Silindi!\n")
+            return
     except:
         print("\n Öğrenci Silinemedi ID kontrol edip tekrar deneyiniz!")
+
+def menu():
+    while True:
+        print("********************Öğrenci Yönetim Sistemi************************\n")
+        print("1. Tüm öğrencileri göster")
+        print("2. Yeni öğrenci ekle")
+        print("3. Öğrenci güncelle")
+        print("4. Öğrenci sil")
+        print("5. Çıkış")
+
+        secim = input("Seçiminiz: ")
+
+        if secim == "1":
+            tum_ogrencileri_goster()
+        elif secim == "2":
+            ogrenci_ekle()
+        elif secim == "3":
+            ogrenci_guncelle()
+        elif secim == "4":
+            ogrenci_sil()
+        elif secim == "5":
+            print("\nSistem Kapatıldı.")
+            break
+        else:
+            print("\nGeçersiz seçim!\n")
+
+
+menu()
