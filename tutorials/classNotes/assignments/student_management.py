@@ -21,7 +21,7 @@ def tum_ogrencileri_goster():
 
     for o in ogrenciler:
         print(
-            f"{o['id']:<4}"
+            f"{o['id']:<4}" # :<4 = 4 bosluk bırak
             f"{o['ad']:<13}"
             f"{o['soyad']:<13}"
             f"{o['numara']:<17}"
