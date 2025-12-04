@@ -4,7 +4,7 @@ import keyboard
 print("Tıklama 10 saniye sonra başlayacak...")
 
 # Geri sayım
-for i in range(5, 0, -1):
+for i in range(10, 0, -1):
     print(i)
     time.sleep(1)
 
