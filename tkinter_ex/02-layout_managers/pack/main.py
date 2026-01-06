@@ -5,7 +5,7 @@ import random
 root = tk.Tk()
 root.title("Pack Layout Manager")
 root.geometry("400x300")
-root.configure(bg="black")
+root.configure(bg="black") # arkaplan rengi
 root.resizable(True, True)
 
 label = Label(root, text="Pack Layout Manager", font=("Arial", 16), fg="red")
@@ -28,8 +28,8 @@ buton3 = Button(root, text="Sayır artır.", command=lambda:numberLabel.config(t
 
 def change_bg_color():
     bg_colors = ['red','gray','green','black','yellow','blue','orange','pink','purple','brown','cyan','magenta']
-    random_color = random.choice(bg_colors)
-    root.configure(bg=random_color)
+    random_color = random.choice(bg_colors) # rastgele renk secimi
+    root.configure(bg=random_color) # arkaplan rengini degistirir
     print(f"Color changed!. Current color: {random_color}")
 
 buton4  = Button(root, text = "Arkaplanı değiştir." , command = change_bg_color).pack(padx=20, pady=20)
