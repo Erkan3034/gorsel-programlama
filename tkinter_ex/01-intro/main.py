@@ -36,3 +36,5 @@ btn = Button(root, text="Gonder", command=helloUser)
 btn.pack(pady=10, padx=10)
 
 root.mainloop() # ana donguyu baslat
+
+

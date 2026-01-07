@@ -37,10 +37,14 @@ label2.grid(row=1, column=0)
 lastNameEntry = tk.Entry(root)
 lastNameEntry.grid(row=1, column=1)
 
+label3= tk.Label(root, text="")
+label3.grid(row=3, column=0, columnspan=2)
+
+
 
 def changeName():
     name = nameEntry.get()
-    label.config(text=name)
+    label3.config(text=name)
 
 name_button = Button(root, text="Adı değiştir", command=changeName)
 name_button.grid(row=2, column=0, columnspan=2)
