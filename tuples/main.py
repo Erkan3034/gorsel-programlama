@@ -4,8 +4,10 @@
 # Tuple'lar () ile tanimlanir ve degistirilemez (immutable).
 bos_tuple = ()
 tek_elemanli = ("Elma",) # Tek elemanli ise virgul sart
-meyveler = ("Elma", "Armut", "Kiraz", "Muz")
+meyveler = ("Elma", "Armut", "Kiraz", "Muz",5)
 sayilar = 1, 2, 3, 4, 5 # Parantezsiz tanimlama (Packing)
+
+
 
 print(" Tuple Cıktısı: Meyveler:", meyveler)
 print(" Tuple Cıktısı: Sayilar:", sayilar)
@@ -28,11 +30,13 @@ print("Rakamlar:", rakamlar)
 print("3 rakaminin sayisi (count):", rakamlar.count(3))
 print("5 rakaminin indeksi (index):", rakamlar.index(5))
 
+
 # 5. Unpacking (Paket Acma)
 print("\n--- Unpacking ---")
 koordinat = (10, 20)
 x, y = koordinat
 print(f"Koordinat: {koordinat} -> x: {x}, y: {y}")
+
 
 # 6. Tuple ve List Karsilastirmasi
 # Tuple daha az yer kaplar ve daha hizlidir.
@@ -42,3 +46,4 @@ tuple_ornek = (1, 2, 3, 4, 5)
 
 print(f"\nListe boyutu (byte): {sys.getsizeof(liste_ornek)}")
 print(f"Tuple boyutu (byte): {sys.getsizeof(tuple_ornek)}")
+print(f"{sys.getrefcount(liste_ornek)} referans sayisi liste icin.")

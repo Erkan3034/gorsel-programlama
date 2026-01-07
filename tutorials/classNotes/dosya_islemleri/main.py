@@ -1,8 +1,3 @@
-# man.py — Dosya İşlemleri (Basit ve Anlaşılır Versiyon)
-
-# Erkan için sade, kısa ve direkt örneklerle hazırlanmış dosya işlemleri rehberi.
-# Her fonksiyon tek bir konuyu gösterir.
-
 import os
 
 # --------------------------------------------------
