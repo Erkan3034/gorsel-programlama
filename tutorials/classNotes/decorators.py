@@ -5,7 +5,7 @@ Mevcut bir fonksiyona özellik eklemek istediğimizde kullanışlıdır.
 """
 
 # ==========================================
-# 1. TEMEL KULLANIM - @decorator_name
+# 1. TEMEL KULLANIM - @decorator_nam
 # ==========================================
 
 def my_decorator(func):
