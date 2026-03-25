@@ -7,6 +7,13 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor, QFont
 
 
+"""
+
+algoritma mantığımı geliştirmek adına renklendirme konusunu araştırdım 
+ve buna ek olarak her tıklama eventinde random olarak backgorun rengi değiştirme algoritmasını düşünerek bunu da uyguladım.
+"""
+
+
 class SayacEkran(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -67,6 +74,7 @@ class SayacEkran(QMainWindow):
     def artir(self):
         self.sayac += 1
         self._sayaci_guncelle()
+        
 
     def azalt(self):
         self.sayac -= 1
@@ -87,8 +95,17 @@ class SayacEkran(QMainWindow):
 
         if self.sayac<0:
             self.status_bar.showMessage(f"Sayaç negatif: {self.sayac}")
+            self.setStyleSheet(f"background-color: {self._random_renk().name()};")
         elif self.sayac>0:
             self.status_bar.showMessage(f"Sayaç güncellendi: {self.sayac}")
+            self.setStyleSheet(f"background-color: {self._random_renk().name()};")
+
+    def _random_renk(self):
+        import random
+        r = random.randint(0, 255)
+        g = random.randint(0, 255)
+        b = random.randint(0, 255)
+        return QColor(r, g, b)
 
 
 if __name__ == "__main__":
