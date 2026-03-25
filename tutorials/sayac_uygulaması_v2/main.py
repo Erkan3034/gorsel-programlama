@@ -1,49 +1,94 @@
-from PyQt6.QtWidgets import(QMainWindow, QApplication, QPushButton, QLabel, QVBoxLayout, QWidget,QLineEdit)
-from PyQt6.QtCore import Qt
 import sys
+from PyQt6.QtWidgets import (
+    QApplication, QMainWindow, QWidget,
+    QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QStatusBar
+)
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QColor, QFont
+
 
 class SayacEkran(QMainWindow):
     def __init__(self):
         super().__init__()
         self.sayac = 0
+        self.init_ui()
+
+    def init_ui(self):
         self.setWindowTitle("Sayaç Uygulaması")
-        self.setGeometry(100, 100, 300, 200)
+        self.setGeometry(100, 100, 320, 220)
+        self._widgetleri_olustur()
+        self._layoutu_ayarla()
+        self._sinyalleri_bagla()
+        self._durum_cubugunu_ayarla()
 
-        self.label = QLabel("0",  self)
+    def _widgetleri_olustur(self):
+        self.label = QLabel("0")
         self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.label.setFont(QFont("Arial", 48, QFont.Weight.Bold))
+        self.label.setStyleSheet("color: #1a1a2e;")
 
-        self.buttonArtir = QPushButton("Artır", self)
-        self.buttonAzalt = QPushButton("Azalt", self)
-        self.buttonSifirla = QPushButton("Sıfırla", self)
+        self.btn_artir   = QPushButton("▲ Artır")
+        self.btn_azalt   = QPushButton("▼ Azalt")
+        self.btn_sifirla = QPushButton("↺ Sıfırla")
 
-        layout = QVBoxLayout()
-        layout.addWidget(self.label)
-        layout.addWidget(self.buttonArtir)
-        layout.addWidget(self.buttonAzalt)
-        layout.addWidget(self.buttonSifirla)
+        self.btn_artir.setStyleSheet("background-color: #4CAF50; color: white; border-radius: 6px; padding: 6px;")
+        self.btn_azalt.setStyleSheet("background-color: #e53935; color: white; border-radius: 6px; padding: 6px;")
+        self.btn_sifirla.setStyleSheet("background-color: #1565C0; color: white; border-radius: 6px; padding: 6px;")
 
-            
+
+    def _layoutu_ayarla(self):
+        h_layout = QHBoxLayout()
+        h_layout.addWidget(self.btn_artir)
+        h_layout.addWidget(self.btn_azalt)
+        h_layout.addWidget(self.btn_sifirla)
+
+        v_layout = QVBoxLayout()
+        v_layout.addWidget(self.label)
+        v_layout.addLayout(h_layout)
 
         container = QWidget()
-        container.setLayout(layout)
+        container.setLayout(v_layout)
         self.setCentralWidget(container)
+        self.setStyleSheet("background-color: #f5f5f5;")
 
-        
-        self.buttonArtir.clicked.connect(self.artir)
-        self.buttonAzalt.clicked.connect(self.azalt)
-        self.buttonSifirla.clicked.connect(self.sifirla)
+    def _sinyalleri_bagla(self):
+        self.btn_artir.clicked.connect(self.artir)
+        self.btn_azalt.clicked.connect(self.azalt)
+        self.btn_sifirla.clicked.connect(self.sifirla)
+
+    def _durum_cubugunu_ayarla(self):
+        self.status_bar = QStatusBar()
+        self.setStatusBar(self.status_bar)
+        self.status_bar.showMessage("Hazır")
+        self.status_bar.setStyleSheet("color: #555555;")
+
+    # --- İş Mantığı ---
 
     def artir(self):
         self.sayac += 1
-        self.label.setText(str(self.sayac))
+        self._sayaci_guncelle()
 
     def azalt(self):
         self.sayac -= 1
-        self.label.setText(str(self.sayac))
+        self._sayaci_guncelle()
 
     def sifirla(self):
         self.sayac = 0
+        self._sayaci_guncelle()
+
+    def _sayaci_guncelle(self):
+        if self.sayac > 0:
+            self.label.setStyleSheet("color: #4CAF50;")
+        elif self.sayac < 0:
+            self.label.setStyleSheet("color: #e53935;")
+        else:
+            self.label.setStyleSheet("color: #1a1a2e;")    
         self.label.setText(str(self.sayac))
+
+        if self.sayac<0:
+            self.status_bar.showMessage(f"Sayaç negatif: {self.sayac}")
+        elif self.sayac>0:
+            self.status_bar.showMessage(f"Sayaç güncellendi: {self.sayac}")
 
 
 if __name__ == "__main__":
